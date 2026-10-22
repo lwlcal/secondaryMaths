@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSE 數學科：因式分解 (Factorization) 互動學習平台</title>
+    <!-- KaTeX CSS & JS for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-slate: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: var(--bg-slate); color: var(--text-main); line-height: 1.6; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 25px; padding: 20px; background: var(--primary); color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+        header p { font-size: 0.95rem; opacity: 0.9; }
+
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--card-bg); padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary-light); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-card .title { font-size: 0.85rem; color: #64748b; font-weight: bold; }
+        .stat-card .value { font-size: 1.4rem; font-weight: bold; color: var(--primary); margin-top: 5px; }
+
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .filter-btn { padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+        .filter-btn.active, .filter-btn:hover { background: var(--primary-light); color: white; border-color: var(--primary-light); }
+
+        .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 10px; }
+        .grid-num { padding: 8px 0; text-align: center; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; background: #f1f5f9; }
+        .grid-num.current { border-color: var(--primary); background: #dbeafe; color: var(--primary); }
+        .grid-num.correct { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .grid-num.incorrect { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+        .question-card { background: var(--card-bg); border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        .q-tag { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .q-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; }
+
+        .options-group { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .option-btn { text-align: left; padding: 12px 18px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+        .option-btn:hover { border-color: var(--primary-light); background: #f0f9ff; }
+        .option-btn.selected { border-color: var(--primary); background: #dbeafe; }
+        .option-btn.correct-opt { border-color: var(--success); background: #d1fae5; color: #065f46; }
+        .option-btn.wrong-opt { border-color: var(--danger); background: #fee2e2; color: #991b1b; }
+
+        .short-input-group { margin: 20px 0; }
+        .short-input-group input { width: 100%; padding: 12px; font-size: 1rem; border: 2px solid #cbd5e1; border-radius: 8px; margin-bottom: 10px; }
+
+        .support-box { background: #fffbebf8; border: 1px solid #fef3c7; border-left: 4px solid var(--accent); padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 0.95rem; }
+        .support-box h4 { color: #b45309; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+
+        .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: background 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-accent:hover { background: #d97706; }
+
+        .solution-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
+        .solution-box.active { display: block; }
+        .checkpoint { background: #eff6ff; border-left: 3px solid var(--primary-light); padding: 8px 12px; margin: 8px 0; font-size: 0.9rem; }
+
+        .mc-strategy { background: #f3e8ff; border-left: 4px solid #a855f7; padding: 12px; border-radius: 6px; margin-top: 10px; font-size: 0.9rem; }
+
+        @media (max-width: 600px) {
+            .controls { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>DSE 數學科：因式分解 (Factorization) 互動平台</h1>
+        <p>備課與鞏固專用 ｜ 40 題精選分層練習（卷一短題目 & 卷二選擇題）</p>
+    </header>
+
+    <div class="dashboard">
+        <div class="stat-card">
+            <div class="title">整體進度</div>
+            <div class="value" id="progress-text">0 / 40</div>
+        </div>
+        <div class="stat-card">
+            <div class="title">答對率</div>
+            <div class="value" id="accuracy-text">0%</div>
+        </div>
+        <div class="stat-card">
+            <div class="title">目前層級</div>
+            <div class="value" id="current-level-text">全區練習</div>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterCategory('all')">全部題目 (40)</button>
+        <button class="filter-btn" onclick="filterCategory('L1')">Level 1: 基礎公式與公因式 (10)</button>
+        <button class="filter-btn" onclick="filterCategory('L2')">Level 2: 四項併項與變號 (10)</button>
+        <button class="filter-btn" onclick="filterCategory('L3')">Level 3: DSE 卷一短題模擬 (10)</button>
+        <button class="filter-btn" onclick="filterCategory('L4')">Level 4: DSE 卷二 MC 模擬 (10)</button>
+    </div>
+
+    <div class="nav-grid" id="nav-grid"></div>
+
+    <div class="question-card" id="question-card">
+        <div class="q-header">
+            <span class="q-tag" id="q-tag">載入中...</span>
+            <span style="font-size: 0.85rem; color: #64748b;" id="q-index-display">題目 1 / 40</span>
+        </div>
+
+        <div class="q-title" id="q-title"></div>
+
+        <!-- 提示支援區 -->
+        <div id="hint-1-box" class="support-box" style="display: none;">
+            <h4>💡 提示層級 1：詞語庫與核心公式</h4>
+            <div id="hint-1-content"></div>
+        </div>
+
+        <div id="hint-2-box" class="support-box" style="display: none; background: #f0f9ff; border-color: #bae6fd; border-left-color: var(--primary-light);">
+            <h4 style="color: #0369a1;">🧩 提示層級 2：步驟拆解與句式框架</h4>
+            <div id="hint-2-content"></div>
+        </div>
+
+        <!-- 答題互動區 -->
+        <div id="interactive-area"></div>
+
+        <div class="controls">
+            <button class="btn btn-accent" onclick="toggleHint(1)">💡 提示 1 (詞語庫/公式)</button>
+            <button class="btn btn-accent" onclick="toggleHint(2)" style="background: #0284c7;">🧩 提示 2 (框架/變號)</button>
+            <button class="btn btn-primary" id="submit-btn" onclick="checkAnswer()">核對答案</button>
+            <button class="btn btn-secondary" onclick="nextQuestion()">下一題 ➔</button>
+        </div>
+
+        <!-- 詳解與階段核對點 -->
+        <div class="solution-box" id="solution-box">
+            <h3 style="color: #15803d; margin-bottom: 10px;">完整解答與解析</h3>
+            <div id="solution-content"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 40 題完整 DSE 因式分解題庫數據
+const questionsData = [
+    // Level 1: 基礎公式與公因式 (1-10)
+    {
+        id: 1, level: 'L1', type: 'short',
+        title: '因式分解 $a^2b + ab^2$',
+        answer: 'ab(a+b)',
+        hint1: '<b>詞語庫：</b>公因子 (Common Factor)<br>觀察兩項中同時出現的字母及其最低次方。',
+        hint2: '<b>步驟框架：</b><br>1. 兩項均含有 $a$ 和 $b$，最大公因子為 $\\underline{\\quad\\quad}$。<br>2. 提取公因子後寫成：$\\underline{\\quad\\quad}(a + b)$。',
+        solution: '提取公因子 $ab$：<br>$$a^2b + ab^2 = ab(a + b)$$<div class="checkpoint">🚩 <b>核對點：</b>將 $ab$ 乘回括號內，檢查是否得回 $a^2b + ab^2$。</div>'
+    },
+    {
+        id: 2, level: 'L1', type: 'short',
+        title: '因式分解 $4x^2 - 25$',
+        answer: '(2x+5)(2x-5)',
+        hint1: '<b>詞語庫：</b>平方差公式 (Difference of Two Squares)<br>公式：$A^2 - B^2 = (A + B)(A - B)$',
+        hint2: '<b>步驟框架：</b><br>1. 將 $4x^2$ 重寫為 $(2x)^2$。<br>2. 將 $25$ 重寫為 $(5)^2$。<br>3. 套用公式 $(\\quad + \\quad)(\\quad - \\quad)$。',
+        solution: '$$4x^2 - 25 = (2x)^2 - (5)^2 = (2x + 5)(2x - 5)$$<div class="checkpoint">🚩 <b>核對點：</b>答案是否為兩個一次因式的乘積？</div>'
+    },
+    {
+        id: 3, level: 'L1', type: 'short',
+        title: '因式分解 $9x^2 - 12x + 4$',
+        answer: '(3x-2)^2',
+        hint1: '<b>詞語庫：</b>完全平方公式 (Perfect Square)<br>公式：$A^2 - 2AB + B^2 = (A - B)^2$',
+        hint2: '<b>步驟框架：</b><br>1. 首項為 $(3x)^2$，尾項為 $(2)^2$。<br>2. 中間項是否等於 $-2(3x)(2) = -12x$？<br>3. 寫成完全平方式：$(\\quad - \\quad)^2$。',
+        solution: '$$9x^2 - 12x + 4 = (3x)^2 - 2(3x)(2) + (2)^2 = (3x - 2)^2$$'
+    },
+    {
+        id: 4, level: 'L1', type: 'short',
+        title: '因式分解 $16a^2 - 81b^2$',
+        answer: '(4a+9b)(4a-9b)',
+        hint1: '<b>詞語庫：</b>平方差公式 $A^2 - B^2$',
+        hint2: '識別 $A = 4a$ 及 $B = 9b$。',
+        solution: '$$16a^2 - 81b^2 = (4a)^2 - (9b)^2 = (4a + 9b)(4a - 9b)$$'
+    },
+    {
+        id: 5, level: 'L1', type: 'short',
+        title: '因式分解 $3x^2 - 12y^2$',
+        answer: '3(x+2y)(x-2y)',
+        hint1: '<b>詞語庫：</b>先提公因子，後套公式。',
+        hint2: '<b>步驟框架：</b><br>1. 先提取數字公因子 $3$ 得 $3(x^2 - 4y^2)$。<br>2. 對括號內使用平方差公式。',
+        solution: '$$3x^2 - 12y^2 = 3(x^2 - 4y^2) = 3(x + 2y)(x - 2y)$$<div class="checkpoint">🚩 <b>核對點：</b>切勿遺漏最外層的數字公因子 $3$。</div>'
+    },
+    {
+        id: 6, level: 'L1', type: 'short',
+        title: '因式分解 $x^3 - 8$',
+        answer: '(x-2)(x^2+2x+4)',
+        hint1: '<b>詞語庫：</b>立方差公式 (Difference of Cubes)<br>公式：$A^3 - B^3 = (A - B)(A^2 + AB + B^2)$',
+        hint2: '將 $8$ 重寫為 $2^3$，故 $A = x, B = 2$。',
+        solution: '$$x^3 - 8 = x^3 - 2^3 = (x - 2)(x^2 + 2x + 4)$$'
+    },
+    {
+        id: 7, level: 'L1', type: 'short',
+        title: '因式分解 $27a^3 + 64b^3$',
+        answer: '(3a+4b)(9a^2-12ab+16b^2)',
+        hint1: '<b>詞語庫：</b>立方和公式 $A^3 + B^3 = (A + B)(A^2 - AB + B^2)$',
+        hint2: '$27a^3 = (3a)^3$，$64b^3 = (4b)^3$。注意二次括號內中間項為負號。',
+        solution: '$$27a^3 + 64b^3 = (3a + 4b)((3a)^2 - (3a)(4b) + (4b)^2) = (3a + 4b)(9a^2 - 12ab + 16b^2)$$'
+    },
+    {
+        id: 8, level: 'L1', type: 'short',
+        title: '因式分解 $2x(a-b) + 3y(a-b)$',
+        answer: '(a-b)(2x+3y)',
+        hint1: '<b>詞語庫：</b>公因式 (Common Factor Expression)<br>括號 $(a-b)$ 本身就是一個公因式。',
+        hint2: '把 $(a-b)$ 整體提出，將剩餘項放入第二個括號。',
+        solution: '$$2x(a-b) + 3y(a-b) = (a - b)(2x + 3y)$$'
+    },
+    {
+        id: 9, level: 'L1', type: 'short',
+        title: '因式分解 $5p(x-y) - 10q(x-y)$',
+        answer: '5(x-y)(p-2q)',
+        hint1: '<b>詞語庫：</b>數字與代數括號雙重公因子。',
+        hint2: '同時提取數字 $5$ 與括號 $(x-y)$。',
+        solution: '$$5p(x-y) - 10q(x-y) = 5(x - y)(p - 2q)$$'
+    },
+    {
+        id: 10, level: 'L1', type: 'short',
+        title: '因式分解 $a^2(b+1) - b - 1$',
+        answer: '(b+1)(a+1)(a-1)',
+        hint1: '<b>詞語庫：</b>變號與括號化。<br>注意：$-b - 1 = -(b + 1)$。',
+        hint2: '<b>步驟框架：</b><br>1. 改寫原式為 $a^2(b+1) - (b+1)$。<br>2. 提取 $(b+1)$ 得 $(b+1)(a^2 - 1)$。<br>3. 繼續分解 $a^2 - 1$。',
+        solution: '$$a^2(b+1) - b - 1 = a^2(b+1) - (b+1) = (b+1)(a^2 - 1) = (b+1)(a+1)(a-1)$$<div class="checkpoint">🚩 <b>核對點：</b>檢查 $a^2-1$ 是否已分解至最簡！</div>'
+    },
+
+    // Level 2: 四項併項與變號技巧 (11-20)
+    {
+        id: 11, level: 'L2', type: 'short',
+        title: '因式分解 $ax + ay + bx + by$',
+        answer: '(a+b)(x+y)',
+        hint1: '<b>詞語庫：</b>併項法 (Grouping)<br>四項式：兩兩一組提取公因子。',
+        hint2: '前兩項提 $a$ 得 $a(x+y)$；後兩項提 $b$ 得 $b(x+y)$。',
+        solution: '$$ax + ay + bx + by = a(x + y) + b(x + y) = (a + b)(x + y)$$'
+    },
+    {
+        id: 12, level: 'L2', type: 'short',
+        title: '因式分解 $x^2 - xy - 2x + 2y$',
+        answer: '(x-y)(x-2)',
+        hint1: '<b>詞語庫：</b>負公因子與變號。<br>當提取 $-2$ 時，括號內的 $+2y$ 需變號為 $-y$。',
+        hint2: '前兩項：$x(x-y)$；後兩項提取 $-2$：$-2(x-y)$。',
+        solution: '$$x^2 - xy - 2x + 2y = x(x - y) - 2(x - y) = (x - y)(x - 2)$$'
+    },
+    {
+        id: 13, level: 'L2', type: 'short',
+        title: '因式分解 $a^2 - b^2 + a - b$',
+        answer: '(a-b)(a+b+1)',
+        hint1: '<b>詞語庫：</b>平方差與單獨括號併項。',
+        hint2: '1. 分解前兩項：$(a+b)(a-b)$。<br>2. 後兩項加上括號：$+(a-b)$。<br>3. 提取公因式 $(a-b)$。',
+        solution: '$$a^2 - b^2 + a - b = (a + b)(a - b) + (a - b) = (a - b)(a + b + 1)$$'
+    },
+    {
+        id: 14, level: 'L2', type: 'short',
+        title: '因式分解 $4x^2 - 9y^2 + 2x - 3y$',
+        answer: '(2x-3y)(2x+3y+1)',
+        hint1: '<b>詞語庫：</b>平方差併項。',
+        hint2: '$4x^2 - 9y^2 = (2x+3y)(2x-3y)$；後兩項為 $+(2x-3y)$。',
+        solution: '$$4x^2 - 9y^2 + 2x - 3y = (2x + 3y)(2x - 3y) + (2x - 3y) = (2x - 3y)(2x + 3y + 1)$$'
+    },
+    {
+        id: 15, level: 'L2', type: 'short',
+        title: '因式分解 $x^2 - y^2 - x - y$',
+        answer: '(x+y)(x-y-1)',
+        hint1: '<b>詞語庫：</b>負號提取變號。<br>注意：$-x - y = -(x + y)$。',
+        hint2: '1. $x^2 - y^2 = (x+y)(x-y)$。<br>2. 後兩項提負號：$-(x+y)$。<br>3. 提取公因式 $(x+y)$。',
+        solution: '$$x^2 - y^2 - x - y = (x + y)(x - y) - (x + y) = (x + y)(x - y - 1)$$'
+    },
+    {
+        id: 16, level: 'L2', type: 'short',
+        title: '因式分解 $ab - ac - b^2 + bc$',
+        answer: '(b-c)(a-b)',
+        hint1: '<b>詞語庫：</b>兩兩併項與變號。',
+        hint2: '前兩項提 $a$ 得 $a(b-c)$；後兩項提 $-b$ 得 $-b(b-c)$。',
+        solution: '$$ab - ac - b^2 + bc = a(b - c) - b(b - c) = (b - c)(a - b)$$'
+    },
+    {
+        id: 17, level: 'L2', type: 'short',
+        title: '因式分解 $m^2 - n^2 - 4m + 4n$',
+        answer: '(m-n)(m+n-4)',
+        hint1: '<b>詞語庫：</b>提取負數公因子。',
+        hint2: '$-4m + 4n = -4(m - n)$。',
+        solution: '$$m^2 - n^2 - 4m + 4n = (m + n)(m - n) - 4(m - n) = (m - n)(m + n - 4)$$'
+    },
+    {
+        id: 18, level: 'L2', type: 'short',
+        title: '因式分解 $9a^2 - 4b^2 - 6a + 4b$',
+        answer: '(3a-2b)(3a+2b-2)',
+        hint1: '<b>詞語庫：</b>提取公因子 $-2$。',
+        hint2: '$-6a + 4b = -2(3a - 2b)$。',
+        solution: '$$9a^2 - 4b^2 - 6a + 4b = (3a + 2b)(3a - 2b) - 2(3a - 2b) = (3a - 2b)(3a + 2b - 2)$$'
+    },
+    {
+        id: 19, level: 'L2', type: 'short',
+        title: '因式分解 $x^2 - y^2 + 2x + 1$',
+        answer: '(x+1+y)(x+1-y)',
+        hint1: '<b>詞語庫：</b>三一併項法 (3-1 Grouping)<br>將三項組合成完全平方。',
+        hint2: '重組為 $(x^2 + 2x + 1) - y^2 = (x + 1)^2 - y^2$，再套用平方差公式。',
+        solution: '$$x^2 + 2x + 1 - y^2 = (x + 1)^2 - y^2 = (x + 1 + y)(x + 1 - y)$$'
+    },
+    {
+        id: 20, level: 'L2', type: 'short',
+        title: '因式分解 $a^2 - b^2 - c^2 + 2bc$',
+        answer: '(a+b-c)(a-b+c)',
+        hint1: '<b>詞語庫：</b>負號括號與三一併項。',
+        hint2: '後三項提負號：$a^2 - (b^2 - 2bc + c^2) = a^2 - (b - c)^2$。',
+        solution: '$$a^2 - (b^2 - 2bc + c^2) = a^2 - (b - c)^2 = [a + (b - c)][a - (b - c)] = (a + b - c)(a - b + c)$$'
+    },
+
+    // Level 3: DSE 卷一短題目模擬 (21-30)
+    {
+        id: 21, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $x^2 - 6x + 9$<br>(b) 因式分解 $x^2 - 6x + 9 - 4y^2$',
+        answer: '(x-3+2y)(x-3-2y)',
+        hint1: '<b>詞語庫：</b> (a) 部結果直接承接至 (b) 部。',
+        hint2: '(a) 部為 $(x-3)^2$；(b) 部利用 $(x-3)^2 - (2y)^2$ 作平方差。',
+        solution: '(a) $x^2 - 6x + 9 = (x - 3)^2$<br>(b) $x^2 - 6x + 9 - 4y^2 = (x - 3)^2 - (2y)^2 = (x - 3 + 2y)(x - 3 - 2y)$'
+    },
+    {
+        id: 22, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $4a^2 - 25b^2$<br>(b) 因式分解 $4a^2 - 25b^2 - 6a + 15b$',
+        answer: '(2a-5b)(2a+5b-3)',
+        hint1: '<b>詞語庫：</b>承接 (a) 部，後兩項提 $-3$。',
+        hint2: '(b) 部：$(2a+5b)(2a-5b) - 3(2a - 5b)$，提取 $(2a-5b)$。',
+        solution: '(a) $4a^2 - 25b^2 = (2a + 5b)(2a - 5b)$<br>(b) $4a^2 - 25b^2 - 6a + 15b = (2a + 5b)(2a - 5b) - 3(2a - 5b) = (2a - 5b)(2a + 5b - 3)$'
+    },
+    {
+        id: 23, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $9x^2 - 16y^2$<br>(b) 因式分解 $9x^2 - 16y^2 - 3x - 4y$',
+        answer: '(3x+4y)(3x-4y-1)',
+        hint1: '<b>詞語庫：</b>注意變號：$-3x - 4y = -(3x + 4y)$。',
+        hint2: '(b) 部：$(3x+4y)(3x-4y) - (3x+4y)$，提取公因式 $(3x+4y)$。',
+        solution: '(a) $9x^2 - 16y^2 = (3x + 4y)(3x - 4y)$<br>(b) $9x^2 - 16y^2 - 3x - 4y = (3x + 4y)(3x - 4y) - (3x + 4y) = (3x + 4y)(3x - 4y - 1)$'
+    },
+    {
+        id: 24, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $a^2 - 10a + 25$<br>(b) 因式分解 $a^2 - 10a + 25 - b^2$',
+        answer: '(a-5+b)(a-5-b)',
+        hint1: '<b>詞語庫：</b>完全平方與平方差結合。',
+        hint2: '(a) 部為 $(a-5)^2$。',
+        solution: '(a) $a^2 - 10a + 25 = (a - 5)^2$<br>(b) $a^2 - 10a + 25 - b^2 = (a - 5)^2 - b^2 = (a - 5 + b)(a - 5 - b)$'
+    },
+    {
+        id: 25, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $x^3 - 27$<br>(b) 因式分解 $x^3 - 27 - x + 3$',
+        answer: '(x-3)(x^2+3x+8)',
+        hint1: '<b>詞語庫：</b>立方差與提取公因式。',
+        hint2: '$-x + 3 = -(x - 3)$。',
+        solution: '(a) $x^3 - 27 = (x - 3)(x^2 + 3x + 9)$<br>(b) $x^3 - 27 - x + 3 = (x - 3)(x^2 + 3x + 9) - (x - 3) = (x - 3)(x^2 + 3x + 9 - 1) = (x - 3)(x^2 + 3x + 8)$'
+    },
+    {
+        id: 26, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $2x^2 + 5x - 3$<br>(b) 因式分解 $2x^2 + 5x - 3 + 2x - 1$',
+        answer: '(2x-1)(x+4)',
+        hint1: '<b>詞語庫：</b>十字相乘法 (Cross-multiplication)',
+        hint2: '(a) 部分解為 $(2x-1)(x+3)$，(b) 部加上的部分為 $+(2x-1)$。',
+        solution: '(a) $2x^2 + 5x - 3 = (2x - 1)(x + 3)$<br>(b) $(2x - 1)(x + 3) + (2x - 1) = (2x - 1)(x + 3 + 1) = (2x - 1)(x + 4)$'
+    },
+    {
+        id: 27, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $16m^2 - 9n^2$<br>(b) 因式分解 $16m^2 - 9n^2 - 8m + 6n$',
+        answer: '(4m-3n)(4m+3n-2)',
+        hint1: '<b>詞語庫：</b>提取公因子 $-2$。',
+        hint2: '$-8m + 6n = -2(4m - 3n)$。',
+        solution: '(a) $16m^2 - 9n^2 = (4m + 3n)(4m - 3n)$<br>(b) $(4m + 3n)(4m - 3n) - 2(4m - 3n) = (4m - 3n)(4m + 3n - 2)$'
+    },
+    {
+        id: 28, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $a^2 + 4ab + 4b^2$<br>(b) 因式分解 $a^2 + 4ab + 4b^2 - c^2$',
+        answer: '(a+2b+c)(a+2b-c)',
+        hint1: '<b>詞語庫：</b>完全平方與平方差。',
+        hint2: '(a) 部為 $(a + 2b)^2$。',
+        solution: '(a) $a^2 + 4ab + 4b^2 = (a + 2b)^2$<br>(b) $(a + 2b)^2 - c^2 = (a + 2b + c)(a + 2b - c)$'
+    },
+    {
+        id: 29, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $x^2 - y^2$<br>(b) 因式分解 $x^2 - y^2 - 5x - 5y$',
+        answer: '(x+y)(x-y-5)',
+        hint1: '<b>詞語庫：</b>提取 $-5$。',
+        hint2: '$-5x - 5y = -5(x + y)$。',
+        solution: '(a) $x^2 - y^2 = (x + y)(x - y)$<br>(b) $(x + y)(x - y) - 5(x + y) = (x + y)(x - y - 5)$'
+    },
+    {
+        id: 30, level: 'L3', type: 'short',
+        title: '(a) 因式分解 $4x^2 - 12xy + 9y^2$<br>(b) 因式分解 $4x^2 - 12xy + 9y^2 - 4x + 6y$',
+        answer: '(2x-3y)(2x-3y-2)',
+        hint1: '<b>詞語庫：</b>完全平方及提負因子。',
+        hint2: '$-4x + 6y = -2(2x - 3y)$。',
+        solution: '(a) $4x^2 - 12xy + 9y^2 = (2x - 3y)^2$<br>(b) $(2x - 3y)^2 - 2(2x - 3y) = (2x - 3y)(2x - 3y - 2)$'
+    },
+
+    // Level 4: DSE 卷二 MC 模擬題 (31-40)
+    {
+        id: 31, level: 'L4', type: 'mc',
+        title: '因式分解 $x^2 - y^2 - 3x + 3y$',
+        options: [
+            'A. $(x-y)(x+y-3)$',
+            'B. $(x-y)(x+y+3)$',
+            'C. $(x+y)(x-y-3)$',
+            'D. $(x-y)(x-y-3)$'
+        ],
+        answer: 0,
+        hint1: '<b>路線 A：代數分解</b><br>$(x+y)(x-y) - 3(x-y)$<br><b>路線 B：代數驗證法 (Check Value)</b><br>設 $x=2, y=1$。',
+        hint2: '<b>數值代入技巧：</b><br>原式 = $2^2 - 1^2 - 3(2) + 3(1) = 4 - 1 - 6 + 3 = 0$。<br>將 $x=2, y=1$ 代入選項，只有 A 得 0。',
+        solution: '原式 = $(x + y)(x - y) - 3(x - y) = (x - y)(x + y - 3)$<br><b>正確答案：A</b>'
+    },
+    {
+        id: 32, level: 'L4', type: 'mc',
+        title: '求 $4a^2 - b^2 - 2a - b$ 的因式 (Factor)。',
+        options: [
+            'A. $2a - b$',
+            'B. $2a + b$',
+            'C. $2a + b - 1$',
+            'D. $2a - b + 1$'
+        ],
+        answer: 1,
+        hint1: '<b>詞語庫：</b>若 $P \\times Q = \\text{原式}$，則 $P$ 及 $Q$ 均為因式。',
+        hint2: '$4a^2 - b^2 - 2a - b = (2a+b)(2a-b) - (2a+b) = (2a+b)(2a-b-1)$。',
+        solution: '原式分解為 $(2a + b)(2a - b - 1)$。<br>因此 $(2a + b)$ 為其中一個因式。<br><b>正確答案：B</b>'
+    },
+    {
+        id: 33, level: 'L4', type: 'mc',
+        title: '因式分解 $m^2 - n^2 + m + n$',
+        options: [
+            'A. $(m+n)(m-n+1)$',
+            'B. $(m+n)(m-n-1)$',
+            'C. $(m-n)(m+n+1)$',
+            'D. $(m-n)(m-n+1)$'
+        ],
+        answer: 0,
+        hint1: '注意最後兩項 $+m+n = +(m+n)$。',
+        hint2: '$(m+n)(m-n) + (m+n) = (m+n)(m-n+1)$。',
+        solution: '$$m^2 - n^2 + m + n = (m + n)(m - n) + (m + n) = (m + n)(m - n + 1)$$<b>正確答案：A</b>'
+    },
+    {
+        id: 34, level: 'L4', type: 'mc',
+        title: '若 $a^2 - b^2 - 4a + 4b = (a-b) \\cdot K$，求 $K$。',
+        options: [
+            'A. $a + b + 4$',
+            'B. $a + b - 4$',
+            'C. $a - b - 4$',
+            'D. $a - b + 4$'
+        ],
+        answer: 1,
+        hint1: '提取公因式 $(a-b)$ 後剩餘的部分即為 $K$。',
+        hint2: '$(a+b)(a-b) - 4(a-b) = (a-b)(a+b-4)$。',
+        solution: '$$a^2 - b^2 - 4a + 4b = (a - b)(a + b - 4)$$故 $K = a + b - 4$。<br><b>正確答案：B</b>'
+    },
+    {
+        id: 35, level: 'L4', type: 'mc',
+        title: '求 $9x^2 - y^2 - 6x + 2y$ 的因式。',
+        options: [
+            'A. $3x + y$',
+            'B. $3x - y$',
+            'C. $3x - y - 2$',
+            'D. $3x + y - 2$'
+        ],
+        answer: 1,
+        hint1: '前兩項平方差，後兩項提 $-2$。',
+        hint2: '$-6x + 2y = -2(3x - y)$。',
+        solution: '原式 = $(3x + y)(3x - y) - 2(3x - y) = (3x - y)(3x + y - 2)$。<br>故 $3x - y$ 為其因式。<br><b>正確答案：B</b>'
+    },
+    {
+        id: 36, level: 'L4', type: 'mc',
+        title: '因式分解 $x^3 + 8 - 2x - 4$',
+        options: [
+            'A. $(x+2)(x^2-2x+2)$',
+            'B. $(x+2)(x^2+2x+2)$',
+            'C. $(x-2)(x^2-2x+2)$',
+            'D. $(x+2)(x^2-2x-2)$'
+        ],
+        answer: 0,
+        hint1: '前兩項用立方和公式：$x^3 + 2^3 = (x+2)(x^2-2x+4)$。',
+        hint2: '後兩項提 $-2$：$-2(x+2)$。提取 $(x+2)$ 後合併。',
+        solution: '原式 = $(x + 2)(x^2 - 2x + 4) - 2(x + 2) = (x + 2)(x^2 - 2x + 4 - 2) = (x + 2)(x^2 - 2x + 2)$<br><b>正確答案：A</b>'
+    },
+    {
+        id: 37, level: 'L4', type: 'mc',
+        title: '求 $a^2 - b^2 - c^2 + 2bc$ 的因式。',
+        options: [
+            'A. $a + b + c$',
+            'B. $a - b - c$',
+            'C. $a - b + c$',
+            'D. $a + b + 2c$'
+        ],
+        answer: 2,
+        hint1: '後三項提負號：$a^2 - (b - c)^2$。',
+        hint2: '平方差展開：$[a + (b - c)][a - (b - c)] = (a + b - c)(a - b + c)$。',
+        solution: '原式 = $(a + b - c)(a - b + c)$。<br>故 $(a - b + c)$ 是其因式。<br><b>正確答案：C</b>'
+    },
+    {
+        id: 38, level: 'L4', type: 'mc',
+        title: '因式分解 $16x^4 - 1$',
+        options: [
+            'A. $(4x^2+1)(2x+1)(2x-1)$',
+            'B. $(4x^2-1)(2x+1)(2x-1)$',
+            'C. $(2x+1)^2(2x-1)^2$',
+            'D. $(4x^2+1)(4x^2-1)$'
+        ],
+        answer: 0,
+        hint1: '多次套用平方差公式！',
+        hint2: '$16x^4 - 1 = (4x^2 + 1)(4x^2 - 1)$，而 $4x^2 - 1$ 可繼續分解。',
+        solution: '$$16x^4 - 1 = (4x^2 + 1)(4x^2 - 1) = (4x^2 + 1)(2x + 1)(2x - 1)$$<div class="checkpoint">🚩 <b>核對點：</b>檢查 $4x^2-1$ 是否已分解到底！</div><b>正確答案：A</b>'
+    },
+    {
+        id: 39, level: 'L4', type: 'mc',
+        title: '求 $x^2 - 4y^2 - x + 2y$ 的因式。',
+        options: [
+            'A. $x + 2y$',
+            'B. $x - 2y$',
+            'C. $x - 2y + 1$',
+            'D. $x + 2y - 1$'
+        ],
+        answer: 1,
+        hint1: '$-x + 2y = -(x - 2y)$。',
+        hint2: '$(x+2y)(x-2y) - (x-2y) = (x-2y)(x+2y-1)$。',
+        solution: '原式 = $(x - 2y)(x + 2y - 1)$。<br>故 $x - 2y$ 為其因式。<br><b>正確答案：B</b>'
+    },
+    {
+        id: 40, level: 'L4', type: 'mc',
+        title: '若 $4x^2 - 9y^2 - 4x + 6y = (2x - 3y) \\cdot P$，求 $P$。',
+        options: [
+            'A. $2x + 3y + 2$',
+            'B. $2x - 3y - 2$',
+            'C. $2x + 3y - 2$',
+            'D. $2x - 3y + 2$'
+        ],
+        answer: 2,
+        hint1: '$4x^2 - 9y^2 = (2x-3y)(2x+3y)$；$-4x + 6y = -2(2x-3y)$。',
+        hint2: '提取 $(2x-3y)$ 得 $(2x-3y)(2x+3y-2)$。',
+        solution: '$$4x^2 - 9y^2 - 4x + 6y = (2x - 3y)(2x + 3y) - 2(2x - 3y) = (2x - 3y)(2x + 3y - 2)$$故 $P = 2x + 3y - 2$。<br><b>正確答案：C</b>'
+    }
+];
+
+let currentFilter = 'all';
+let filteredIndices = [];
+let currentFilteredIndex = 0;
+let userAnswers = {}; // { qId: { userAns: ..., isCorrect: bool } }
+let selectedMcOption = null;
+
+function init() {
+    applyFilter();
+    renderQuestion();
+}
+
+function applyFilter() {
+    filteredIndices = [];
+    questionsData.forEach((q, idx) => {
+        if (currentFilter === 'all' || q.level === currentFilter) {
+            filteredIndices.push(idx);
+        }
+    });
+    currentFilteredIndex = 0;
+    renderNavGrid();
+    updateDashboard();
+}
+
+function filterCategory(cat) {
+    currentFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    let levelName = '全區練習';
+    if(cat === 'L1') levelName = 'Level 1: 基礎公式與公因式';
+    if(cat === 'L2') levelName = 'Level 2: 四項併項與變號';
+    if(cat === 'L3') levelName = 'Level 3: DSE 卷一短題模擬';
+    if(cat === 'L4') levelName = 'Level 4: DSE 卷二 MC 模擬';
+    document.getElementById('current-level-text').innerText = levelName;
+
+    applyFilter();
+    renderQuestion();
+}
+
+function renderNavGrid() {
+    const grid = document.getElementById('nav-grid');
+    grid.innerHTML = '';
+    filteredIndices.forEach((qIdx, fIdx) => {
+        const q = questionsData[qIdx];
+        const btn = document.createElement('div');
+        btn.className = 'grid-num';
+        btn.innerText = q.id;
+        
+        if (fIdx === currentFilteredIndex) btn.classList.add('current');
+        if (userAnswers[q.id]) {
+            if (userAnswers[q.id].isCorrect) btn.classList.add('correct');
+            else btn.classList.add('incorrect');
+        }
+        
+        btn.onclick = () => {
+            currentFilteredIndex = fIdx;
+            renderQuestion();
+        };
+        grid.appendChild(btn);
+    });
+}
+
+function renderQuestion() {
+    if (filteredIndices.length === 0) return;
+    const qIndex = filteredIndices[currentFilteredIndex];
+    const q = questionsData[qIndex];
+
+    document.getElementById('q-tag').innerText = q.level + ' 題型';
+    document.getElementById('q-index-display').innerText = `第 ${currentFilteredIndex + 1} / ${filteredIndices.length} 題 (總題號: Q${q.id})`;
+    document.getElementById('q-title').innerHTML = q.title;
+
+    // Reset hints and solutions
+    document.getElementById('hint-1-box').style.display = 'none';
+    document.getElementById('hint-2-box').style.display = 'none';
+    document.getElementById('solution-box').classList.remove('active');
+    document.getElementById('hint-1-content').innerHTML = q.hint1;
+    document.getElementById('hint-2-content').innerHTML = q.hint2;
+
+    const interactiveArea = document.getElementById('interactive-area');
+    interactiveArea.innerHTML = '';
+    selectedMcOption = null;
+
+    if (q.type === 'mc') {
+        const optGroup = document.createElement('div');
+        optGroup.className = 'options-group';
+        q.options.forEach((optText, optIdx) => {
+            const optBtn = document.createElement('button');
+            optBtn.className = 'option-btn';
+            optBtn.innerHTML = optText;
+            
+            // If already answered
+            if (userAnswers[q.id]) {
+                if (optIdx === q.answer) optBtn.classList.add('correct-opt');
+                if (userAnswers[q.id].userAns === optIdx && optIdx !== q.answer) optBtn.classList.add('wrong-opt');
+            }
+
+            optBtn.onclick = () => {
+                if (userAnswers[q.id]) return; // locked
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                optBtn.classList.add('selected');
+                selectedMcOption = optIdx;
+            };
+            optGroup.appendChild(optBtn);
+        });
+
+        // Add MC Strategy Box
+        const mcStrat = document.createElement('div');
+        mcStrat.className = 'mc-strategy';
+        mcStrat.innerHTML = '<b>⚡ DSE 卷二雙軌解題提示：</b> 可選【路線 A：代數標準分解】或【路線 B：數值代入法 (如設 $x=2, y=1$)】快速驗證答案。';
+        interactiveArea.appendChild(optGroup);
+        interactiveArea.appendChild(mcStrat);
+
+    } else {
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'short-input-group';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'short-answer-input';
+        input.placeholder = '請輸入你的答案（例如：(2x-3y)(2x+3y-1)），或完成後點擊【核對答案】對照...';
+        
+        if (userAnswers[q.id]) {
+            input.value = userAnswers[q.id].userAns;
+            input.disabled = true;
+        }
+
+        inputGroup.appendChild(input);
+        interactiveArea.appendChild(inputGroup);
+    }
+
+    // Render Math via KaTeX
+    renderMathInElement(document.getElementById('question-card'), {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+
+    renderNavGrid();
+}
+
+function toggleHint(level) {
+    const box = document.getElementById(`hint-${level}-box`);
+    if (box.style.display === 'none' || box.style.display === '') {
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
+    }
+}
+
+function checkAnswer() {
+    const qIndex = filteredIndices[currentFilteredIndex];
+    const q = questionsData[qIndex];
+
+    if (userAnswers[q.id]) {
+        // Show solution anyway if already checked
+        showSolution(q);
+        return;
+    }
+
+    let isCorrect = false;
+    let userAns = null;
+
+    if (q.type === 'mc') {
+        if (selectedMcOption === null) {
+            alert('請先選擇一個選項！');
+            return;
+        }
+        userAns = selectedMcOption;
+        isCorrect = (userAns === q.answer);
+    } else {
+        const inputVal = document.getElementById('short-answer-input').value.trim();
+        if (!inputVal) {
+            if(!confirm('你尚未輸入文字答案，是否直接核對標準步驟？')) return;
+            userAns = '（自主對答）';
+            isCorrect = true; 
+        } else {
+            userAns = inputVal;
+            // Clean space for standard string comparison
+            const cleanUser = inputVal.replace(/\s+/g, '').toLowerCase();
+            const cleanTarget = q.answer.replace(/\s+/g, '').toLowerCase();
+            isCorrect = (cleanUser === cleanTarget);
+        }
+    }
+
+    userAnswers[q.id] = { userAns, isCorrect };
+    updateDashboard();
+    renderQuestion();
+    showSolution(q);
+}
+
+function showSolution(q) {
+    const solBox = document.getElementById('solution-box');
+    const solContent = document.getElementById('solution-content');
+    solContent.innerHTML = q.solution;
+    solBox.classList.add('active');
+
+    renderMathInElement(solBox, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+}
+
+function nextQuestion() {
+    if (currentFilteredIndex < filteredIndices.length - 1) {
+        currentFilteredIndex++;
+        renderQuestion();
+    } else {
+        alert('已到達當前分類的最後一題！');
+    }
+}
+
+function updateDashboard() {
+    const totalAnswered = Object.keys(userAnswers).length;
+    const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
+    const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+
+    document.getElementById('progress-text').innerText = `${totalAnswered} / 40`;
+    document.getElementById('accuracy-text').innerText = `${accuracy}%`;
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
